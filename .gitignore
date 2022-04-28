@@ -1,0 +1,3 @@
+# ignore all .mat files
+*.mat
+*.asv
