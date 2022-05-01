@@ -48,7 +48,7 @@ t_store = cell(length(refine_list), 1);
 q_store = cell(length(refine_list), 1);
 p_store = cell(length(refine_list), 1);
 
-%% Run simulation at various spatial refinement levels
+%% Run simulation at various spatial/temporal refinement levels
 nr = M.nr;
 dt_max = M.dt_max;
 for i = 1:length(refine_list)
@@ -128,7 +128,7 @@ nr = 100; % number of grid intervals = number of grid points - 1
 
 M.nr = nr*refine;
 M.dt_max = dt_max/refine;
-[r, t_s, p_s, pWH, dpw0, q_s] = injection2(M, testflag, rglgridflag, plotflag, saveflag);
+[r, t_s, p_s, pWH, dpw0, q_s] = injection1(M, testflag, rglgridflag, plotflag, saveflag);
 
 % compute numerical average pressure at every time step
 p_avg = nan(length(t_s), 1);

@@ -59,7 +59,7 @@ surf(X./1e3, Z./1e3, T_field(:,:,1)./1e6, 'edgecolor', 'none');colorbar
 view([0, 90]); xlabel('x (km)'); ylabel('z (km)');
 title('\Delta \tau_{yx} (MPa)'); xlim([xL./1e3, xU./1e3]);ylim([zL./1e3, zU./1e3]);
 
-suptitle(sprintf('%i by %i nodes used for numerical calculation', Nz, Nx))
+%suptitle(fprintf('%i by %i nodes used for numerical calculation', Nz, Nx))
 
 %% Compute error as a function of number of nodes in each direction and zero padding
 % demonstrate convergence with mesh refinement and zero padding
