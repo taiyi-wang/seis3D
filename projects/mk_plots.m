@@ -459,7 +459,24 @@ plot(t_ss_s{choose_idx}./86400, -M1.s0_ss.*(p_ss_s{choose_idx} - p_ss_s{choose_i
 legend('\delta \tau_{str}', '\delta \tau_{as}', '\Psi_0 \cdot \delta \sigma_{as}', '-\Psi_0 \cdot \delta p_{ss}')
 xlabel('time (days)')
 
+%% Plot observed seismic catalogue
+% retrieve locations of observed seismic events along z = 0 km, for x >= 0 km
+load('Cooper_Basin_Catalog_HAB_4.mat')
+event_lat = Catalog(4).val; event_lon = Catalog(5).val; elevation = Catalog(6).val; event_t = Catalog(2).val;
+event_t = (event_t-event_t(1)); event_Mw = Catalog(8).val; event_M0 = Catalog(7).val;
+HB4_lat = -27.8115; HB4_lon = 140.7596;% from well completion report
 
+% convert event locations to meters with regard to HB4
+event_local = llh2local([event_lon'; event_lat'; elevation'],[HB4_lon; HB4_lat; 0]);
+event_x = event_local(1,:).*1000; event_z = event_local(2,:).*1000; 
+
+%%
+figure;
+scatter3(event_x./1e3, event_z./1e3, elevation', (event_Mw./max(event_Mw)+0.1).*5e2, event_t, '.');hold on; colorbar; 
+plot3(repelem(0, 5, 1), repelem(0, 5, 1), linspace(-3.5, -4.085, 5), 'Color', [0.2, 0.4, 0.8], 'LineWidth', 2);
+xlabel('East (km)'); ylabel('North (km)');
+colormap('jet'); axis equal;
+grid on;
 
 
 
