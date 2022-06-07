@@ -123,12 +123,13 @@ for i = 1:length(x_locs)
     new_dtaux_x(i, :) = new_dtaux;
 end
 
-
+%%
 figure;
 for i = 1:2:length(new_t)
     plot(Z(:, xx_0_idx)'./1000, new_dp_x(:,i)./1e6, 'r', 'LineWidth', 1);hold on;  
     plot(X(zz_0_idx,:)./1000, new_dp_z(:,i)./1e6, 'r--', 'LineWidth', 1)
 end
+xline(110/1e3, 'k--', 'LineWidth', 1); xline(-110/1e3, 'k--', 'LineWidth', 1);
 xlim([-3, 3]);
 xlabel('locations (km)'); ylabel('pressure change (MPa)');
 legend('along x-axis (along dip)', 'along z-axis (along strike)');
@@ -211,14 +212,14 @@ mid_x_idx = (Nx+1)/2;
 mid_z_idx = (Nz+1)/2;
 
 % Velocity on main fault in log10(m/s)
-Vx_as = squeeze(Vx_as_s(:,mid_z_idx,:));
+Vx_as = squeeze(Vx_as_s(:,mid_x_idx,:));
 Vx_as_max = max(Vx_as, [],'all');
 Vx_as_min = min(Vx_as, [],'all');
 
 z_locs = Z(:, 1);
 xlocs_ss = ss_locs(:,1)./1000; % x coordinates of the spring sliders in km
 zlocs_ss = ss_locs(:,2)./1000; % x coordinates of the spring sliders in km
-[T_grid, Z_grid] = meshgrid(t_as_s, z_locs);
+[T_grid, Z_grid] = meshgrid(t_as_s, x_locs);
 
 % retrieve locations of observed seismic events along z = 0 km, for x >= 0 km
 load('Cooper_Basin_Catalog_HAB_4.mat')
@@ -231,30 +232,31 @@ event_local = llh2local([event_lon'; event_lat'; elevation'],[HB4_lon; HB4_lat; 
 event_x = event_local(1,:).*1000; event_z = event_local(2,:).*1000; 
 
 % find events along x-axis (west-east), extending from HB4 towards west-east
-event_narroaw_idx = intersect(find(event_z<100 & event_z>-100), find(event_Mw > 0));
+event_narroaw_idx = intersect(find(event_x<100 & event_x>-100), find(event_Mw > 0));
 
 figure;
 p = pcolor(T_grid./86400, Z_grid./1000, log10(Vx_as)); colormap(parula);colorbar; caxis([log10(Vx_as_min), log10(Vx_as_max)-2]);
 p.FaceColor = 'interp'; set(p, 'EdgeColor', 'none'); p.FaceAlpha = 1; hold on;
 
 for i = 1:length(event_narroaw_idx)
-    plt = plot(event_t(event_narroaw_idx(i))-3, event_x(event_narroaw_idx(i))./1000, 'w.', 'MarkerSize', event_Mw(event_narroaw_idx(i))*10);% seismic catalogue starts on 11/10/2012, whereas pressure data starts on 11/13/2012
+    plt = plot(event_t(event_narroaw_idx(i))-3, event_z(event_narroaw_idx(i))./1000, 'w.', 'MarkerSize', event_Mw(event_narroaw_idx(i))*10);% seismic catalogue starts on 11/10/2012, whereas pressure data starts on 11/13/2012
     plt.Color(4) = 0.2; 
 end
 
 quakes = find_quakes(t_ss_s, Vx_ss_s, Dx_ss_s, M1);
 
 for i = 1:size(quakes, 1)
-    plot(quakes{i, 2}, xlocs_ss(i), '.', 'Color', [0.8500, 0.3250, 0.0980, 0.2], 'MarkerSize', abs(quakes{i, 4}).*10);  
+    plot(quakes{i, 2}, zlocs_ss(i), '.', 'Color', [0.8500, 0.3250, 0.0980, 0.2], 'MarkerSize', abs(quakes{i, 4}).*10);  
 end
 
 % make a legend for seismic event moment magnitude
-plot(1.1, -0.6, 'w.', 'MarkerSize', 2*10); %text(1.2, -0.5, 'M_w = 2', 'Color', 'w');
-plot(1.1, -0.75, 'w.', 'MarkerSize', 1.5*10); %text(1.2, -0.65, 'M_w = 1.5', 'Color', 'w');
-plot(1.1, -0.9, 'w.', 'MarkerSize', 1*10); %text(1.2, -0.8, 'M_w = 1', 'Color', 'w');
+%plot(1.1, -0.6, 'w.', 'MarkerSize', 2*10); %text(1.2, -0.5, 'M_w = 2', 'Color', 'w');
+%plot(1.1, -0.75, 'w.', 'MarkerSize', 1.5*10); %text(1.2, -0.65, 'M_w = 1.5', 'Color', 'w');
+%plot(1.1, -0.9, 'w.', 'MarkerSize', 1*10); %text(1.2, -0.8, 'M_w = 1', 'Color', 'w');
 view([0, 90]);
 xlim([min(t_s./86400), 17]); ylim([-1, 1]);
 ylabel('z (km)'); xlabel('time (days)'); %title('Color scale = aseismic slip velocity (cm/day); contour = perturbation pressure (MPa)')
+
 
 %% Histograms of seismicity
 % 1. time dependence of seismicity
@@ -263,8 +265,8 @@ data_event_t = data_event_t(data_event_t<=17);
 ss_event_t = cell2mat(quakes(:,2));
 
 figure;
-histogram(data_event_t, 'Normalization', 'Probability', 'FaceAlpha', 1, 'FaceColor', [1, 1, 1], 'LineWidth', 1, 'BinWidth', 0.2); hold on;
-histogram(ss_event_t, 'Normalization', 'Probability', 'LineWidth', 1, 'FaceAlpha', 0.8, 'BinWidth', 0.2);
+histogram(data_event_t, 'Normalization', 'Probability', 'FaceAlpha', 0.5, 'FaceColor', [1, 1, 1], 'LineWidth', 1, 'BinWidth', 0.2); hold on;
+histogram(ss_event_t, 'Normalization', 'Probability', 'LineWidth', 1, 'FaceAlpha', 0.5, 'BinWidth', 0.2);
 %histogram(data_event_t, 'Normalization', 'cdf', 'FaceColor', 'none', 'LineWidth', 1, 'BinWidth', 0.2, 'DisplayStyle', 'stairs'); hold on;
 %histogram(ss_event_t, 'Normalization', 'cdf', 'LineWidth', 1, 'BinWidth', 0.2, 'DisplayStyle', 'stairs');
 
@@ -296,18 +298,41 @@ pred_narroaw_z_idx = intersect(find(pred_z<500 & pred_z>-500), find(event_Mw > 0
 pred_narroaw_x_idx = intersect(find(pred_x<500 & pred_x>-500), find(event_Mw > 0));
 
 figure;
-histogram(event_x(data_narroaw_z_idx)./1000, 'Normalization', 'Probability', 'FaceAlpha', 1, 'FaceColor', [1, 1, 1], 'LineWidth', 1, 'BinWidth', 0.03);hold on;
-histogram(pred_x(pred_narroaw_z_idx)./1000, 30, 'Normalization', 'Probability', 'LineWidth', 1, 'FaceAlpha', 0.8, 'BinWidth', 0.03); 
+histogram(event_x(data_narroaw_z_idx)./1000, 'Normalization', 'Probability', 'FaceAlpha', 0.5, 'FaceColor', [1, 1, 1], 'LineWidth', 1, 'BinWidth', 0.03);hold on;
+histogram(pred_x(pred_narroaw_z_idx)./1000, 30, 'Normalization', 'Probability', 'LineWidth', 1, 'FaceAlpha', 0.5, 'BinWidth', 0.03); 
 xlim([-1.5, 1.5]);
 xlabel('distance along dip (km)');
 ylabel('normalized frequency')
 
 figure;
-histogram(event_z(data_narroaw_x_idx)./1000, 'Normalization', 'Probability', 'FaceAlpha', 1, 'FaceColor', [1, 1, 1], 'LineWidth', 1, 'BinWidth', 0.03);hold on;
-histogram(pred_z(pred_narroaw_x_idx)./1000, 30, 'Normalization', 'Probability', 'LineWidth', 1, 'FaceAlpha', 0.8, 'BinWidth', 0.03); 
+histogram(event_z(data_narroaw_x_idx)./1000, 'Normalization', 'Probability', 'FaceAlpha', 0.5, 'FaceColor', [1, 1, 1], 'LineWidth', 1, 'BinWidth', 0.03);hold on;
+histogram(pred_z(pred_narroaw_x_idx)./1000, 30, 'Normalization', 'Probability', 'LineWidth', 1, 'FaceAlpha', 0.5, 'BinWidth', 0.03); 
 xlim([-1.5, 1.5]);
 xlabel('distance along strike (km)');
 ylabel('normalized frequency')
+
+%% migration of seismicity over time
+quake_x = ss_locs(cell2mat(quakes(:, 1)), 1);
+quake_z = ss_locs(cell2mat(quakes(:, 1)), 2);
+quake_r = sqrt(quake_x.^2 + quake_z.^2);
+
+event_r = sqrt(event_x.^2 + event_z.^2);
+
+figure;
+scatter(event_t-3, event_r./1e3, 50, 'k', 'filled', 'MarkerFaceAlpha', 0.3); hold on;
+
+for i = 1:length(quake_r)
+    quake_ts = quakes{i, 2};
+    for j = 1:length(quake_ts)
+        quake_t = quake_ts(j);
+        scatter(quake_t, quake_r(i)./1e3, 50, 'r', 'filled'); hold on;
+    end
+end
+xlim([0, 17]);
+
+
+xlabel('days since injection began'); ylabel('distance from injector (km)')
+clear quake_x quake_z quake_r
 
 %% Normalized cumulative seismic/aseismic moment release
 A = M1.dx .* M1.dz;
@@ -402,10 +427,40 @@ xlabel('along dip (SSW-NNE)');ylabel('along strike')
 colorbar; 
 xlim([-2, 2]); ylim([-2, 2])
 clear i event_idx Nevent_day
+%% Main fault phase diagram and velocity time series
 
+% pick a location 
+%load('as_output.mat', 'Vx_as_s', 'psi_as_s')
+xidx = 108; zidx = 108;
+a_as = M1.a(zidx, xidx); b_as = M1.b(zidx, xidx);
+f0 = M1.f0; V0 = M1.V0;
+Vx_as = squeeze(Vx_as_s(zidx, xidx, :));
+psi_as = squeeze(psi_as_s(zidx, xidx, :));
+
+% steady state 
+f_ss = @(v) f0 + (a_as-b_as) * log(v/V0);
+
+% frictional coefficient
+f = a_as .* asinh(Vx_as/(2*V0).*exp(psi_as/a_as));
+
+figure;
+plot(log(Vx_as)- log(V0), f, 'k', 'LineWidth',1); hold on;  % phase diagram
+plot(log(Vx_as) - log(V0), f_ss(Vx_as), 'r-', 'LineWidth', 1);  % steady state
+plot(log(Vx_as) - log(V0), a_as.*log(Vx_as)+0.96 , 'b-', 'LineWidth', 1);
+plot(log(Vx_as(1)) - log(V0), f(1), 'k.', 'MarkerSize', 20); % starting point
+xlabel('log_{10} v_x/v_0'), ylabel('f');
+
+%%
+figure;
+%yyaxis left
+semilogy(t_as_s, Vx_as, 'k-'); 
+%yyaxis right
+%plot()
+xlabel('time (s)'); ylabel('log_{10} v');
 %% spring slider phase diagram
+% Note: spring slider # 86 has 2 events
 % choose the index of spring slider
-choose_idc = 87;
+choose_idc = 18;
 
 % unpack variables
 a_ss = M1.a_ss; b_ss = M1.b_ss;
@@ -433,13 +488,14 @@ figure;
 for i = 1:length(choose_idc)
     choose_idx = choose_idc(i);
     
-    semilogy(t_ss_s{choose_idx}, Vx_ss_s{choose_idx}, 'k-'); hold on;
+    semilogy(t_ss_s{choose_idx}./86400, Vx_ss_s{choose_idx}, 'k-'); hold on;
 end
 
 %% spring slider pressure and aseismic loading stress history
-choose_idx = 87;
-
+choose_idx = 18;
 % compute total strength change
+f = a_ss .* asinh(Vx_ss_s{choose_idx}/(2*V0).*exp(Psi_ss_s{choose_idx}/a_ss));
+f0 = f(1);
 qd_stress_change = taux_ss_s{choose_idx} - taux_ss_s{choose_idx}(1); % quasi-dynamic stress change
 strength_change = f.*qd_stress_change;
 
@@ -454,9 +510,9 @@ ylabel('log_{10} v_x')
 subplot(2, 1, 2)
 plot(t_ss_s{choose_idx}./86400, strength_change./1e6, 'k'); ylabel('(MPa)'); hold on; % total shear strength change
 plot(t_as_s./86400, shear_stress_change(2:end)./1e6, 'b--'); % shear stress change due to aseismic loading
-plot(t_as_s./86400, M1.s0_ss.*normal_stress_change(2:end)./1e6, 'b'); % shear strength change due to normal stress change produced by aseismic loading
-plot(t_ss_s{choose_idx}./86400, -M1.s0_ss.*(p_ss_s{choose_idx} - p_ss_s{choose_idx}(1))./1e6, 'r'); % shear strength change due to normal stress change produced by pressure diffusion
-legend('\delta \tau_{str}', '\delta \tau_{as}', '\Psi_0 \cdot \delta \sigma_{as}', '-\Psi_0 \cdot \delta p_{ss}')
+plot(t_as_s./86400, f0.*normal_stress_change(2:end)./1e6, 'b'); % shear strength change due to normal stress change produced by aseismic loading
+plot(t_ss_s{choose_idx}./86400, -f0.*(p_ss_s{choose_idx} - p_ss_s{choose_idx}(1))./1e6, 'r'); % shear strength change due to normal stress change produced by pressure diffusion
+legend('\delta \tau_{str}', '\delta \tau_{as}', 'f_0 \cdot \delta \sigma_{as}', '-f_0 \cdot \delta p_{ss}')
 xlabel('time (days)')
 
 %% Plot observed seismic catalogue
@@ -470,7 +526,6 @@ HB4_lat = -27.8115; HB4_lon = 140.7596;% from well completion report
 event_local = llh2local([event_lon'; event_lat'; elevation'],[HB4_lon; HB4_lat; 0]);
 event_x = event_local(1,:).*1000; event_z = event_local(2,:).*1000; 
 
-%%
 figure;
 scatter3(event_x./1e3, event_z./1e3, elevation', (event_Mw./max(event_Mw)+0.1).*5e2, event_t, '.');hold on; colorbar; 
 plot3(repelem(0, 5, 1), repelem(0, 5, 1), linspace(-3.5, -4.085, 5), 'Color', [0.2, 0.4, 0.8], 'LineWidth', 2);
@@ -478,5 +533,69 @@ xlabel('East (km)'); ylabel('North (km)');
 colormap('jet'); axis equal;
 grid on;
 
+%% Plot histogram of strength drop vs. shear stress change due to aseismic loading
+[Nseismic, ~] = size(quakes); % number of patches that became seismic
+count = 0;
+for i = 1:Nseismic
+    idx = quakes{i, 1}; % index of seismic patches
+    tes = quakes{i, 2}.*86400; % timing of earthquakes (s)
+    ps = p_ss_s{idx};   % pressure history at the seismic patches
+    ts = t_ss_s{idx};   % time of each seismic patch
+    p0 = ps(1);         % initial pressure at this seismic patch
+    dtauxs = dtaux_ss(:, idx);    % shear stress change due to aseismic loading
+    dtauys = dtauy_ss(:, idx);    % normal stress change due to aseismic loading
+    f = M1.a_ss .* asinh(Vx_ss_s{idx}/(2*M1.V0).*exp(Psi_ss_s{idx}/M1.a_ss));
+    f0 = f(1);
+    for j = 1:length(tes)
+        count = count + 1;
+        te = tes(j);
+        str_drop = interp1(ts, -(ps - p0).*f0, te);
+        dtau_x = interp1(t_as_s, dtauxs(2:end), te);
+        dtau_y = interp1(t_as_s, dtauys(2:end), te);
+
+        str_drops(count) = str_drop;
+        dtau_xs(count) = dtau_x;
+        f0dtau_ys(count) = dtau_y.*f0;
+        quakex(count) = ss_locs(idx, 1);
+        quakez(count) = ss_locs(idx, 2);
+    end
+end
+
+figure;
+histogram(dtau_xs./1e6, 'BinWidth', 0.1, 'FaceColor', 'b', 'EdgeAlpha', 1, 'FaceAlpha', 0.5, 'LineWidth', 1);hold on;
+histogram(str_drops./1e6, 'BinWidth', 0.1,'FaceColor', 'r', 'EdgeAlpha', 1, 'FaceAlpha', 0.5, 'LineWidth', 1); 
+histogram(f0dtau_ys./1e6, 'BinWidth', 0.1, 'FaceColor', [0.9290 0.6940 0.1250], 'EdgeAlpha', 1,'FaceAlpha', 0.5, 'LineWidth', 1); 
+%legend('\Delta \tau_{as}', '- f_0 \cdot \Delta p ', 'f_0 \cdot \Delta \sigma_{as}')
+xlabel('MPa'); ylabel('count'); xlim([-4, 4]); 
+
+% reorder pressure change according to distance from injector
+[~, sortidx] = sort(sqrt(quakex.^2 + quakez.^2));
+Nevents = length(sortidx);
+%figure
+scatter(dtau_xs(sortidx)./1e6, (1:Nevents)./2.3, 100, 'b', 'filled', 'MarkerFaceAlpha', 0.7, 'MarkerEdgeColor', 'k'); hold on;
+scatter(str_drops(sortidx)./1e6, (1:Nevents)./2.3, 100, 'r', 'filled', 'MarkerFaceAlpha', 0.7, 'MarkerEdgeColor', 'k');
+scatter(f0dtau_ys(sortidx)./1e6, (1:Nevents)./2.3, 100, [0.9290 0.6940 0.1250], 'filled', 'MarkerFaceAlpha', 0.7, 'MarkerEdgeColor', 'k');
+ax=gca;ax.LineWidth=1; 
+ylim([0, 100]);
+
+% plot the location of aseismic loading triggered versus fault weakening
+% triggered events
+as_trigger_idc = union(find(abs(dtau_xs) >= abs(str_drops)), find((abs(f0dtau_ys) >= abs(str_drops))));
+wk_trigger_idc = intersect(find(abs(str_drops)>=abs(dtau_xs)), find(abs(str_drops)>=abs(f0dtau_ys)));
+
+[Xq, Zq] = meshgrid(linspace(min(X(:)), max(X(:)), 5e3), linspace(min(Z(:)), max(Z(:)), 5e3));
+Dx_end = Dx_as_s(:,:,end);
+Dx_end = interp2(X, Z, Dx_end, Xq, Zq);
+
+figure;
+contour(Xq./1000, Zq./1000, Dx_end, 'LineWidth', 2, 'Color', 'k', 'ShowText','on'); hold on;
+plot(quakex(wk_trigger_idc)./1000, quakez(wk_trigger_idc)./1000, 'r.', 'MarkerSize', 30);
+plot(quakex(as_trigger_idc)./1000, quakez(as_trigger_idc)./1000, 'b+', 'MarkerSize', 30);
+axis equal
+xlim([-1.5, 1.5]); ylim([-1.5, 1.5]);
+
+
+
+%clear i idx ts count tes ps p0 te count str_drop str_drops dtau_xs dtau_x
 
 
