@@ -65,7 +65,7 @@ for i = 1:N_ss
             
             S = ds_list(k);
             M0 = mu * A * S;
-            Mw = 2/3*(log10(M0) - 9.1);
+            Mw = 2/3*(log10(M0) - 9.05);
             
             quakes{count, 4} = Mw;
         end
