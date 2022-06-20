@@ -24,7 +24,7 @@ for i = 1:Nrow
         ub = tauLock_s(i,j)/M.eta; % upper bound of search
          
         [V_local, ~] = hybrid(@(vel)solveV(vel,tauLock_s(i, j),s(i,j),M.a(i,j), M.V0, M.eta, sig_as(i,j), p(i,j)),lb,ub, 1e-14, 1e-6);
-
+        
         % just solve scalar velocity
         v(i,j) = V_local.*sign(tauLock(i,j));
     end
