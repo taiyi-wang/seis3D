@@ -61,7 +61,6 @@ for i = 1:length(refine_list)
     t_store{i} = t_s;
     q_store{i} = q_s;
     p_store{i} = p_s;
-    
 end
 %% convergence of pressure time series with mesh refinement
 % 1. convergence at injector (well bottom) --------------------------------
@@ -128,7 +127,7 @@ nr = 100; % number of grid intervals = number of grid points - 1
 
 M.nr = nr*refine;
 M.dt_max = dt_max/refine;
-[r, t_s, p_s, pWH, dpw0, q_s] = injection1(M, testflag, rglgridflag, plotflag, saveflag);
+[r, t_s, p_s, ~, ~, q_s] = injection2(M, testflag, rglgridflag, plotflag, saveflag);
 
 % compute numerical average pressure at every time step
 p_avg = nan(length(t_s), 1);
