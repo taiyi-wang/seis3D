@@ -94,8 +94,8 @@ J = FZ.B\(FZ.D2-FZ.Sw.*FZ.S);
 dp0 = repelem(0, nr, 1); % initial condition for pressure perturbation
 tspan = [0, t_max];      % time span for the solver
 
-options = odeset('RelTol', 1e-2, 'AbsTol', 1e-2, 'MaxStep', dt_max, 'Jacobian', J);
-options_noflow = odeset('RelTol', 1e-2, 'AbsTol', 1e-2, 'MaxStep', dt_max);
+options = odeset('RelTol', 1e-3, 'AbsTol', 1e-3, 'MaxStep', dt_max, 'Jacobian', J);
+options_noflow = odeset('RelTol', 1e-3, 'AbsTol', 1e-3, 'MaxStep', dt_max);
 
 [t_s, dp] = ode15s(@(t, p) pODE(t, p, FZ, tq, Q), tspan, dp0, options);         % change in pressure field in fault zone
 [t_s_w0, dpw0] = ode15s(@(t, p) pODEnoflow(t, p, FZ, tq, Q), tspan, 0, options_noflow); % pressure change in well, if no flow out of well
