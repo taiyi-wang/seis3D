@@ -1,4 +1,4 @@
-function [pPipe,tau] = pipeFriction(Q,rho,R,L,f)
+function pPipe = pipeFriction(Q,rho,R,L,f)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Pressure loss from turbulent pipe friction
 
@@ -10,7 +10,8 @@ function [pPipe,tau] = pipeFriction(Q,rho,R,L,f)
 % f   = Darcy-Weibach frictional coefficient
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-A = pi*R^2; % cross-sectional area
-tau = f/4*rho*(Q/A).^2; % wall shear stress
-pPipe = tau*2*L/R; % pressure loss (pi*R^2*p/L=2*pi*R*tau)
+D = 2*R;
+A = pi*R^2;
+v = Q./A;
+pPipe = f*L/D*rho.*v.^2./2;
 end
