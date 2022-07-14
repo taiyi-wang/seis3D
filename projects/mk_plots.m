@@ -335,7 +335,8 @@ xlabel('days since injection began'); ylabel('distance from injector (km)')
 clear quake_x quake_z quake_r
 
 %% Normalized cumulative seismic/aseismic moment release
-A = M1.dx .* M1.dz;
+A = M1.dx .* M1.dz; % area of a grid element on main fault
+A_ss = M1.ss_dx*M1.ss_dz;
 mu = M1.mu;
 
 % 1. compare data/prediction in seismic moment release
@@ -347,7 +348,7 @@ load('ss_output_15.mat', 't_ss_s', 'Dx_ss_s')
 for i = 1:N_ss
     t = t_ss_s{i};
     d = Dx_ss_s{i};
-    m = A .* mu .*  d; % cumulative moment
+    m = A_ss .* mu .*  d; % cumulative moment
     
     cM_ss_p = cM_ss_p + interp1(t, m, t_m);
 end
@@ -359,7 +360,7 @@ load('ss_output_12.mat', 't_ss_s', 'Dx_ss_s')
 for i = 1:N_ss
     t = t_ss_s{i};
     d = Dx_ss_s{i};
-    m = A .* mu .*  d; % cumulative moment
+    m = A_ss .* mu .*  d; % cumulative moment
     
     cM_ss_p_12 = cM_ss_p_12 + interp1(t, m, t_m);
 end
@@ -371,7 +372,7 @@ load('ss_output_17.mat', 't_ss_s', 'Dx_ss_s')
 for i = 1:N_ss
     t = t_ss_s{i};
     d = Dx_ss_s{i};
-    m = A .* mu .*  d; % cumulative moment
+    m = A_ss .* mu .*  d; % cumulative moment
     
     cM_ss_p_17 = cM_ss_p_17 + interp1(t, m, t_m);
 end
@@ -598,4 +599,37 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]);
 
 %clear i idx ts count tes ps p0 te count str_drop str_drops dtau_xs dtau_x
 
+%% plot aseismic and seismic moment after end of injection
+addpath(fullfile(above_dir ,'/output/final/'))
+load('as_slip_long.mat')
+load('M1.mat');
+load('M2.mat');
+load('Cooper_Basin_Catalog_HAB_4.mat')
+event_t = Catalog(2).val; event_t = (event_t-event_t(1)); event_t = event_t-3;
+event_M0 = Catalog(7).val;
+
+t_end = M2.H4_time(end)./86400; % time at which injection ends (days)
+
+% compute observed cumulative seismic moment after end of injection----------------
+[~, end_idx_ss] = min(abs(event_t - t_end));
+postT_ss = event_t(end_idx_ss:end).*86400;
+cM_ss = cumsum(event_M0); % measured cumulative seismic moment
+post_cM_ss = cM_ss(end_idx_ss:end)-cM_ss(end_idx_ss);
+
+% compute simulated cumulative aseismic moment after end of injection--------------------
+mu = M1.mu;
+A = M1.dx*M1.dz; % area of one grid element
+[~, end_idx_as] = min(abs(t_as_s - t_end*86400));
+postT_as = t_as_s(end_idx_as:end);
+
+% displacement field after injection stopped
+postD_as = Dx_as_s(:,:,end_idx_as:end); 
+postD_as= postD_as - postD_as(:,:,1);
+post_cM_as = squeeze(sum(sum(postD_as .* mu .* A, 1), 2));
+
+figure;
+plot((postT_as-postT_as(1))./86400, post_cM_as, 'k-', 'LineWidth', 2); hold on;
+plot((postT_ss-postT_ss(1))./86400, post_cM_ss, 'k--', 'LineWidth', 2);
+xlabel('days after injection stopped'); ylabel('cumulative moment change')
+xlim([0, 3]);
 
