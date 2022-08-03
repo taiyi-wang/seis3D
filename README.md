@@ -19,3 +19,6 @@ Taiyi A. Wang, Eric M. Dunham, 2022.
 Note: 
 1. All input parameter values are set up in setup_model.m under /source_code
 2. All input data (injection volume rate etc.) are setup in setup_data.m under /source_code
+
+Warning:
+cooperBasin.m may take a few days to run to complete. The most time consuming step is computing aseismic slip on main fault.
