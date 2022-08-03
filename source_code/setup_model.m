@@ -115,7 +115,7 @@ s_Hmax = 160e6;                 % maximum horizontal stress [Pa]
 rho_r = 2700;                % bulk density of granite [kg m^-3]
 
 [~, snt,snn]=rotate_stress(-s_Hmax,0,-s_v,theta);
-taux_as_0 = snt;                        % Initial shear stress on the main fault [Pa]
+taux_as_0 = 15e6;                        % Initial shear stress on the main fault [Pa]
 tauy_as_0 = repelem(abs(snn), Nz, Nx);   % initial uniform main fault normal stress [Pa]
 taux_ss_0 = 15e6;                         % Initial shear stress on the spring slider [Pa]
 tauy_ss_0 = s_v-rho_r*g*(as_y - ss_locs(:, 3));               % initial spring slider normal stress [Pa]
