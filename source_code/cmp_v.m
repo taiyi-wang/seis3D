@@ -1,7 +1,7 @@
 
 function v = cmp_v(tauLock, s, p, sig_as, M)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This funciton computes slip velocity from static stress balance equation
+% This funciton computes slip velocity from quasi-dynamic stress balance equation
 % Input:
 % tauLock = Nz x Nx initial shear stress + loading stress
 % s       = Nz x Nx state variable
