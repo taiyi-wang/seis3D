@@ -18,8 +18,8 @@ function [ta, Va, Da, Psia, Pa, taua] = springslider(M, D0, Psi0, tauy0, tmax, t
 % ta = Mstep X 1 vector of time (s) from the adaptive time stepping
 % Va = Mstep X 1 vector of velocities (m/s) 
 % Da = Mstep X 1 vector of displacement (m)
-% Pa = Mstep x 1 vector of pore pressure at spring slider (Pa)
 % Psia = Nstep X 1 vector of state variable
+% Pa = Mstep x 1 vector of pore pressure at spring slider (Pa)
 % taua = Nstep X 1 vector of shear stress on spring slider (Pa)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
