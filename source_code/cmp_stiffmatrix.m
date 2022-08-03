@@ -24,9 +24,9 @@ function [M_ss_as, M_as_ss, M_ss_ss] = cmp_stiffmatrix(as_locs, ss_locs, as_dx, 
 % 1. Form the matrix linking seismic slip to aseismic stress change
 M_ss_as_yx = zeros(N_as, N_ss);
 M_ss_as_yy = zeros(N_as, N_ss);
-%{
-for i = 1:N_ss
-    ss_loc_x = ss_locs(i, 1)+ss_dx/2; % source location is defined at the right boundary of the displocation
+
+parfor i = 1:N_ss
+    ss_loc_x = ss_locs(i, 1)+ss_dx/2; % source location is defined at the right boundary of the dislocation
     ss_loc_z = ss_locs(i, 2);
     ss_loc_y = ss_locs(i, 3); % positive source depth is "in the ground"
     
@@ -35,7 +35,7 @@ for i = 1:N_ss
     as_loc_y = -as_locs(:, 3); % negative receiver depth is "in the ground"
     
     strike_slip = 0;
-    dip_slip = -1; % unit slip [m] towards positive-x
+    dip_slip = -1; % unit slip [m] towards positive x
     openning = 0; 
     
     dip = 0; strike = 0; 
@@ -46,7 +46,7 @@ for i = 1:N_ss
     M_ss_as_yx(:, i) = transpose(S(3,:)); % sigma_yx
     M_ss_as_yy(:, i) = transpose(S(6,:)); % sigma_yy
 end
-%}
+
 M_ss_as = {M_ss_as_yx, M_ss_as_yy};
 
 disp('finish setting up stiffness matrix M_ss_as')
