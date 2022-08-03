@@ -1,4 +1,4 @@
-
+ 
 function [x,err]=hybrid(func,a,b,atol,rtol)
 
   % hybrid method solves func(x)=0 for some root x within (a,b)
