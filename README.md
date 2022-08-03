@@ -6,14 +6,14 @@ Taiyi A. Wang, Eric M. Dunham, 2022.
 
 ## Usage:
  
-/projects
+projects/
  - cooperBasin.m: computes all required information in the paper: "Hindcasting injection-induced aseismic slip and microseismicity at the Cooper Basin Enhanced Geothermal Systems Project"
  - mk_plots: make all plots in the paper
 
-/source_code
+source_code/
  - functions that scripts in /projects will call
  
-/benchmark
+benchmark/
  - benchmark static elasticity solver and pressure diffusion solver
 
 Note: 
