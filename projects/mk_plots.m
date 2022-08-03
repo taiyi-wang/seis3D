@@ -1,4 +1,7 @@
 % Make plots for publication
+% Note: 
+% 1. the code is meant to be run sequentially
+
 % Taiyi Wang 11/30/2021
 
 current_dir  = pwd;
@@ -7,6 +10,7 @@ above_dir = current_dir(1:idcs(end)-1); % one level above current directory
 
 %addpath(fullfile(above_dir, '/output'))
 addpath(fullfile(above_dir ,'/source_code'))
+addpath(fullfile(above_dir ,'/output/final/.'))
 addpath(fullfile(above_dir ,'/input'))
 
 %% Adjust font and line
@@ -15,13 +19,10 @@ set(0,'DefaultAxesFontSize',16)
 set(0,'DefaultLineLineWidth', 2);
 set(0,'DefaultLineMarkerSize',12);
 
-%% Load data needed
+%% Make schematic to show the main fault and seismic patches
 load('M1.mat'); 
 load('M2.mat');
-load('injection_output_15')
-load('ss_output');
-load('as_output');
-%% Make schematic to show the main fault and seismic patches
+
 % unpack variables
 ss_locs = M1.ss_locs;
 ss_dx = M1.ss_dx;
@@ -56,12 +57,13 @@ xlabel('depth (km)')
 
 
 %% Plot injection rate, well head pressure data, with prediction
+load('injection_output.mat');
+
 % unpack variables
 x0_4 = M2.x0_4; z0_4 = M2.z0_4; X = M1.X; Z = M1.Z;
 H4_time = M2.H4_time; H4_wh_p = M2.H4_wh_p;
 
 % observation point coordinates
-
 xx_0_idx = find(X(1,:) == x0_4);
 zz_0_idx = find(Z(:,1) == z0_4);
 wh_time = H4_time;
@@ -88,6 +90,9 @@ xlabel('days'); ylabel('MPa');
 legend('lithostatic + far-field', 'fault pore pressure at injector')
 
 %% Compare shear stress vs. pressure perturbation evolution
+load('as_output.mat', 't_as_s', 'p_as_s', 'taux_as_s')
+X = M1.X; Z = M1.Z;
+
 Nt = length(t_as_s);                                % number of time steps
 x_locs = X(1,:); z_locs = Z(:,1);
 
@@ -123,6 +128,8 @@ for i = 1:length(x_locs)
     new_dtaux_x(i, :) = new_dtaux;
 end
 
+clear p_as_s taux_as_s
+
 %%
 figure;
 for i = 1:2:length(new_t)
@@ -146,6 +153,8 @@ legend('along x-axis (along dip)', 'along z-axis (along strike)');
 title('time interval = 2 day');
 
 %% Plot cumulative aseismic slip along each fault dimension
+load('as_output.mat', 'Dx_as_s')
+
 x_locs = X(1,:);
 z_locs = Z(:,1);
 
@@ -178,7 +187,11 @@ xlabel('locations (km)'); ylabel('aseismic slip (cm)');
 legend('along x-axis (along dip)', 'along z-axis (along strike)');
 title('time interval = 2 day');
 
+clear Dx_as_s
+
 %% Plot seismic slip along each dimension
+load('ss_output_15.mat', 'Dx_ss_s')
+
 % find indices of spring sliders within thin strips along x and z passing
 % through injection point 
 ss_x_idc = find(abs(ss_locs(:,2)) <= 100); % along x
@@ -204,6 +217,8 @@ xlim([-1, 1]); legend('along x-axis (along dip)', 'along z-axis (along strike)')
 xlabel('location (km)'); ylabel('final seismic slip (cm)');
 
 %% Plot H4 aseismic slip and (one way coupled) seismic events
+load('as_output.mat', 'Vx_as_s')
+load('ss_output_15.mat')
 % Unpack variables
 Nx = M1.Nx; Nz = M1.Nz; p_pore = M2.p_pore;
 N_ss = M1.N_ss; mu = M1.mu;
@@ -257,6 +272,7 @@ view([0, 90]);
 xlim([min(t_s./86400), 17]); ylim([-1, 1]);
 ylabel('z (km)'); xlabel('time (days)'); %title('Color scale = aseismic slip velocity (cm/day); contour = perturbation pressure (MPa)')
 
+clear Vx_as_s
 
 %% Histograms of seismicity
 % 1. time dependence of seismicity
@@ -335,11 +351,13 @@ xlabel('days since injection began'); ylabel('distance from injector (km)')
 clear quake_x quake_z quake_r
 
 %% Normalized cumulative seismic/aseismic moment release
+load('as_output.mat', 'Dx_as_s')
+
 A = M1.dx .* M1.dz; % area of a grid element on main fault
 A_ss = M1.ss_dx*M1.ss_dz;
 mu = M1.mu;
 
-% 1. compare data/prediction in seismic moment release
+% 1. compare data/prediction in seism ic moment release
 t_m = (0:0.05:17).*86400; % evenly spaced time for resampling
 
 % compute predicted total seismic moment release (default case)
@@ -404,34 +422,11 @@ legend('simulated cumulative aseismic moment', 'observed cumulative seismic mome
 
 clear idx_d
 
+clear Dx_as_s
 
-%% Plot the 2D distribution of seismicity at any given time
-chosen_day = 10;
-
-figure;
-
-event_idx = find(event_t-3 -chosen_day <= 1 & event_t-3 -chosen_day >= 0);
-plot(event_x(event_idx)./1000, event_z(event_idx)./1000, 'k.');
-[~, taux_day_idx] = min(abs((t_as_s./86400)-chosen_day));
-dtaux_day = squeeze(taux_as_s(:,:,taux_day_idx)) - squeeze(taux_as_s(:,:,1));
-h = pcolor(X./1000, Z./1000, dtaux_day./1e6);
-set(h, 'EdgeColor', 'none');
-hold on;
-
-for i = 1:N_ss
-    Nevent_day = find(pop_list{i, 1}-chosen_day <= 1 & pop_list{i, 1}-chosen_day >= 0); % get number of events in the chosen day
-    if Nevent_day >= 1
-        plot(zlocs_ss(i), xlocs_ss(i), 'r.');
-    end
-end
-xlabel('along dip (SSW-NNE)');ylabel('along strike')
-colorbar; 
-xlim([-2, 2]); ylim([-2, 2])
-clear i event_idx Nevent_day
 %% Main fault phase diagram and velocity time series
-
+load('as_output.mat', 'Vx_as_s', 'psi_as_s')
 % pick a location 
-%load('as_output.mat', 'Vx_as_s', 'psi_as_s')
 xidx = 108; zidx = 108;
 a_as = M1.a(zidx, xidx); b_as = M1.b(zidx, xidx);
 f0 = M1.f0; V0 = M1.V0;
@@ -451,14 +446,13 @@ plot(log(Vx_as) - log(V0), a_as.*log(Vx_as)+0.96 , 'b-', 'LineWidth', 1);
 plot(log(Vx_as(1)) - log(V0), f(1), 'k.', 'MarkerSize', 20); % starting point
 xlabel('log_{10} v_x/v_0'), ylabel('f');
 
-%%
 figure;
-%yyaxis left
 semilogy(t_as_s, Vx_as, 'k-'); 
-%yyaxis right
-%plot()
 xlabel('time (s)'); ylabel('log_{10} v');
+
+clear Vx_as_s psi_as_s
 %% spring slider phase diagram
+load('ss_output_15.mat', '')
 % Note: spring slider # 86 has 2 events
 % choose the index of spring slider
 choose_idc = 18;
@@ -594,10 +588,6 @@ plot(quakex(wk_trigger_idc)./1000, quakez(wk_trigger_idc)./1000, 'r.', 'MarkerSi
 plot(quakex(as_trigger_idc)./1000, quakez(as_trigger_idc)./1000, 'b+', 'MarkerSize', 30);
 axis equal
 xlim([-1.5, 1.5]); ylim([-1.5, 1.5]);
-
-
-
-%clear i idx ts count tes ps p0 te count str_drop str_drops dtau_xs dtau_x
 
 %% plot aseismic and seismic moment after end of injection
 addpath(fullfile(above_dir ,'/output/final/'))
