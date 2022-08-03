@@ -11,14 +11,15 @@ projects/
  - mk_plots: make all plots in the paper
 
 source_code/
- - functions that scripts in /projects will call
+ - functions that scripts in projects/ will call
  
 benchmark/
  - benchmark static elasticity solver and pressure diffusion solver
 
 Note: 
-1. All input parameter values are set up in setup_model.m under /source_code
-2. All input data (injection volume rate etc.) are setup in setup_data.m under /source_code
+1. All input parameter values are set up in setup_model.m under source_code/
+2. All input data (injection volume rate etc.) are setup in setup_data.m under source_code/
+3. Detailed description of governing equations and numerical methods can be found in the paper.
 
 Warning:
 cooperBasin.m may take a few days to run to complete. The most time consuming step is computing aseismic slip on main fault.
