@@ -34,7 +34,7 @@ if ~loadflag  % save input if setting up in real time
     save('M2.mat', 'M2')
 end
 %% Run simulation
-[r, t_s, p_s, pWH, dpw0, q_s] = injection2(M2, testflag, rglgridflag, plotflag, saveflag); % linear pressure diffusion simulation 
+[r, t_s, p_s, pWH, ~, ~, q_s] = injection2(M2, testflag, rglgridflag, plotflag, saveflag); % linear pressure diffusion simulation 
 %%
 p_s_xy = lograd_to_rgxy(r, t_s, p_s, M1, saveflag);                                                  % interpolate pressure onto regular, Cartesian grid
 %%
