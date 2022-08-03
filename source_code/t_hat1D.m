@@ -9,7 +9,7 @@ function Tyx = t_hat1D(kx, kz, Dx, mu, nu)
 % nu = poisson's ratio
 
 % Output:
-% T = a scalar of traction along x
+% Tyx = a scalar of traction along x
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 [kx, kz] = meshgrid(kx, kz);
