@@ -8,7 +8,7 @@ Taiyi A. Wang, Eric M. Dunham, 2022.
  
 projects/
  - cooperBasin.m: computes all required information in the paper: "Hindcasting injection-induced aseismic slip and microseismicity at the Cooper Basin Enhanced Geothermal Systems Project"
- - mk_plots: make all plots in the paper
+ - mk_plots.m: make all plots in the paper
 
 source_code/
  - functions that scripts in projects/ will call
