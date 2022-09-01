@@ -553,6 +553,7 @@ for i = 1:Nseismic
         f0dtau_ys(count) = dtau_y.*f0;
         quakex(count) = ss_locs(idx, 1);
         quakez(count) = ss_locs(idx, 2);
+        quaket(count) = te;
     end
 end
 
@@ -560,11 +561,12 @@ figure;
 histogram(dtau_xs./1e6, 'BinWidth', 0.1, 'FaceColor', 'b', 'EdgeAlpha', 1, 'FaceAlpha', 0.5, 'LineWidth', 1);hold on;
 histogram(str_drops./1e6, 'BinWidth', 0.1,'FaceColor', 'r', 'EdgeAlpha', 1, 'FaceAlpha', 0.5, 'LineWidth', 1); 
 histogram(f0dtau_ys./1e6, 'BinWidth', 0.1, 'FaceColor', [0.9290 0.6940 0.1250], 'EdgeAlpha', 1,'FaceAlpha', 0.5, 'LineWidth', 1); 
-%legend('\Delta \tau_{as}', '- f_0 \cdot \Delta p ', 'f_0 \cdot \Delta \sigma_{as}')
+%legend('\Delta \tau_{as}', '- f_0 \cdot aiyi\Delta p ', 'f_0 \cdot \Delta \sigma_{as}')
 xlabel('MPa'); ylabel('count'); xlim([-4, 4]); 
 
 % reorder pressure change according to distance from injector
 [~, sortidx] = sort(sqrt(quakex.^2 + quakez.^2));
+quaker = sqrt(quakex.^2 + quakez.^2);
 Nevents = length(sortidx);
 %figure
 scatter(dtau_xs(sortidx)./1e6, (1:Nevents)./2.3, 100, 'b', 'filled', 'MarkerFaceAlpha', 0.7, 'MarkerEdgeColor', 'k'); hold on;
@@ -584,10 +586,29 @@ Dx_end = interp2(X, Z, Dx_end, Xq, Zq);
 
 figure;
 contour(Xq./1000, Zq./1000, Dx_end, 'LineWidth', 2, 'Color', 'k', 'ShowText','on'); hold on;
-plot(quakex(wk_trigger_idc)./1000, quakez(wk_trigger_idc)./1000, 'r.', 'MarkerSize', 30);
-plot(quakex(as_trigger_idc)./1000, quakez(as_trigger_idc)./1000, 'b+', 'MarkerSize', 30);
+plot(quakex(wk_trigger_idc)./1e3, quakez(wk_trigger_idc)./1e3, 'r.', 'MarkerSize', 20);
+plot(quakex(as_trigger_idc)./1e3, quakez(as_trigger_idc)./1e3, 'b+', 'MarkerSize', 10);
+plot(ss_locs(choose_idx, 1)./1e3, ss_locs(choose_idx, 2)./1e3, 'r+', 'MarkerSize', 20); 
 axis equal
 xlim([-1.5, 1.5]); ylim([-1.5, 1.5]);
+
+%% plot space-time of triggering mechanism
+quaker_wk = sqrt(quakex(wk_trigger_idc).^2 + quakez(wk_trigger_idc).^2);
+quaker_as = sqrt(quakex(as_trigger_idc).^2 + quakez(as_trigger_idc).^2);
+quaket_wk = quaket(wk_trigger_idc);
+quaket_as = quaket(as_trigger_idc);
+
+% radial distance of chosen spring slider
+chosen_r = sqrt(ss_locs(choose_idx, 1)^2 + ss_locs(choose_idx, 2)^2);
+chosen_t = quakes{cell2mat(quakes(:, 1)) == choose_idx, 2}; % day, can be found in "quakes"
+
+figure;
+plot(quaket_wk./86400, quaker_wk./1e3, 'r.', 'MarkerSize', 20); hold on;
+plot(quaket_as./86400, quaker_as./1e3, 'b+', 'MarkerSize', 10);
+plot(chosen_t, chosen_r./1e3, 'r+', 'MarkerSize', 20);
+xlabel('days since injection started'); ylabel('distance from injector (km)');
+xline(13, 'k--'); yline(0.7, 'k--');
+
 
 %% plot aseismic and seismic moment after end of injection
 addpath(fullfile(above_dir ,'/output/final/'))
