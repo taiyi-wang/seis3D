@@ -141,7 +141,7 @@ xlim([-3, 3]);
 xlabel('locations (km)'); ylabel('pressure change (MPa)');
 legend('along x-axis (along dip)', 'along z-axis (along strike)');
 title('time interval = 2 day');
-
+%%
 figure;
 for i = 1:2:length(new_t)
     plot(Z(:, xx_0_idx)'./1000, new_dtaux_x(:,i)./1e6, 'b', 'LineWidth', 1);hold on;  
@@ -283,15 +283,6 @@ ss_event_t = cell2mat(quakes(:,2));
 figure;
 histogram(data_event_t, 'Normalization', 'Probability', 'FaceAlpha', 0.5, 'FaceColor', [1, 1, 1], 'LineWidth', 1, 'BinWidth', 0.2); hold on;
 histogram(ss_event_t, 'Normalization', 'Probability', 'LineWidth', 1, 'FaceAlpha', 0.5, 'BinWidth', 0.2);
-%histogram(data_event_t, 'Normalization', 'cdf', 'FaceColor', 'none', 'LineWidth', 1, 'BinWidth', 0.2, 'DisplayStyle', 'stairs'); hold on;
-%histogram(ss_event_t, 'Normalization', 'cdf', 'LineWidth', 1, 'BinWidth', 0.2, 'DisplayStyle', 'stairs');
-
-%[f_d,xi_d] = ksdensity(data_event_t, 'NumPoints',1000);
-%[f_p,xi_p] = ksdensity(ss_event_t, 'NumPoints',1000);
-%plot(xi_d, f_d, 'Color', 'k', 'LineWidth', 1);
-%plot(xi_p, f_p, 'Color', [0.6350 0.0780 0.1840], 'LineWidth', 1);
-%legend('catalogue', 'simulated')
-%xlabel('days since injection started'); ylabel('frequency of seismic events');
 xlim([0, 18]);
 
 % 2. seismicity as a function of spatial coordinates
@@ -452,7 +443,7 @@ xlabel('time (s)'); ylabel('log_{10} v');
 
 clear Vx_as_s psi_as_s
 %% spring slider phase diagram
-load('ss_output_15.mat', '')
+load('ss_output_15.mat')
 % Note: spring slider # 86 has 2 events
 % choose the index of spring slider
 choose_idc = 18;
@@ -529,6 +520,7 @@ colormap('jet'); axis equal;
 grid on;
 
 %% Plot histogram of strength drop vs. shear stress change due to aseismic loading
+load('as_output.mat', 'Dx_as_s')
 [Nseismic, ~] = size(quakes); % number of patches that became seismic
 count = 0;
 for i = 1:Nseismic
@@ -592,6 +584,8 @@ plot(ss_locs(choose_idx, 1)./1e3, ss_locs(choose_idx, 2)./1e3, 'r+', 'MarkerSize
 axis equal
 xlim([-1.5, 1.5]); ylim([-1.5, 1.5]);
 
+clear Dx_as_s
+
 %% plot space-time of triggering mechanism
 quaker_wk = sqrt(quakex(wk_trigger_idc).^2 + quakez(wk_trigger_idc).^2);
 quaker_as = sqrt(quakex(as_trigger_idc).^2 + quakez(as_trigger_idc).^2);
@@ -602,12 +596,54 @@ quaket_as = quaket(as_trigger_idc);
 chosen_r = sqrt(ss_locs(choose_idx, 1)^2 + ss_locs(choose_idx, 2)^2);
 chosen_t = quakes{cell2mat(quakes(:, 1)) == choose_idx, 2}; % day, can be found in "quakes"
 
+% diffusion length scale
+nth_day_injection = 4; % assume that injection started on this day
+k1 = M2.k(1);    % permeability in the near field
+k2 = M2.k(end);  % permeability in the far field
+eta = M2.eta_v;  % fluid viscosity
+beta = M2.beta;  % pore + fluid compressibility
+phi = M2.phi;    % porosity
+
+alpha = k2/(eta * beta * phi); % diffusivity
+t_hat = linspace(1, max(quaket), 200);
+L = @(t) real(sqrt(4*alpha .* (t - 86400*nth_day_injection)));     % diffusion length
+
+% theoretical prediction 
+std = M1.sigma_y;
+tauy0 = M1.tauy_as_0(1,1);
+taux0 = M1.taux_as_0;
+Dtauc = f0*(tauy0 - p0) - taux0;
+w = M2.w;
+Q0 = 20e-3;
+
+dz_list = [0.5; 1.5; 2.5];
+t = 1;
+
+r_seis = @(t, dz) cmp_seis_extent(t, dz, Dtauc, eta, beta, k2, w, Q0, phi, std);
+
+r_pred = nan(length(dz_list), length(t_hat));
+for i = 1:length(dz_list)
+    for j = 1:length(t_hat)
+        r = r_seis(t_hat(j), dz_list(i));
+        if ~isempty(r)
+            r_pred(i, j) =r;
+        end
+    end
+end
+
+c_list = repmat(linspace(0, 0.8, length(dz_list))', 1, 3);
+
 figure;
-plot(quaket_wk./86400, quaker_wk./1e3, 'r.', 'MarkerSize', 20); hold on;
+plot(quaket_wk./86400, quaker_wk./1e3, 'r.', 'MarkerSize', 10); hold on;
 plot(quaket_as./86400, quaker_as./1e3, 'b+', 'MarkerSize', 10);
 plot(chosen_t, chosen_r./1e3, 'r+', 'MarkerSize', 20);
+plot(t_hat./86400, L(t_hat)./1e3, 'k-');
+for i = 1:length(dz_list)
+    plot(t_hat./86400+nth_day_injection, r_pred(i, :)./1e3, 'Color', c_list(i, :), 'LineStyle', ':');
+end
 xlabel('days since injection started'); ylabel('distance from injector (km)');
 xline(13, 'k--'); yline(0.7, 'k--');
+xlim([0, 18]); ylim([0, 1.4]);
 
 
 %% plot aseismic and seismic moment after end of injection
@@ -643,4 +679,9 @@ plot((postT_as-postT_as(1))./86400, post_cM_as, 'k-', 'LineWidth', 2); hold on;
 plot((postT_ss-postT_ss(1))./86400, post_cM_ss, 'k--', 'LineWidth', 2);
 xlabel('days after injection stopped'); ylabel('cumulative moment change')
 xlim([0, 3]);
+
+
+
+
+
 
